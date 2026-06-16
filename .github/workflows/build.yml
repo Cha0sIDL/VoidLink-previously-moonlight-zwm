@@ -3,8 +3,8 @@ name: Build VoidLink IPA
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: '要打包的分支'
+      ref:
+        description: '分支名或 tag（如 Integration 或 v1.0.0）'
         required: true
         default: 'Integration'
         type: string
@@ -18,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: ${{ inputs.branch }}
+          ref: ${{ inputs.ref }}
 
       - name: Checkout submodules
         run: "git submodule update --init --recursive"
