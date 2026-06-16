@@ -1,0 +1,37 @@
+name: Build VoidLink IPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: '要打包的分支'
+        required: true
+        default: 'Integration'
+        type: string
+
+jobs:
+  build:
+    name: Build VoidLink IPA
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Checkout submodules
+        run: "git submodule update --init --recursive"
+
+      - name: Build VoidLink
+        run: |
+          xcodebuild -verbose -scheme VoidLink -sdk iphoneos -configuration Debug archive -archivePath $PWD/build/VoidLink.xcarchive CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED="NO" CODE_SIGN_ENTITLEMENTS="" CODE_SIGNING_ALLOWED="NO"
+          mkdir -p ./build/IPA && mkdir -p ./build/IPA/Payload
+          cp -r ./build/VoidLink.xcarchive/Products/Applications/VoidLink.app ./build/IPA/Payload/VoidLink.app
+          cd ./build/IPA && zip -r ../../build/VoidLink.ipa ./Payload/* && cd ../..
+
+      - name: Upload VoidLink IPA to Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoidLink.ipa
+          path: build/VoidLink.ipa
